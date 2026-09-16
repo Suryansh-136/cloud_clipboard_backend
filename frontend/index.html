@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Clipboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
+            <h1 class="text-2xl font-bold text-sky-400">🌉 Cloud Clipboard</h1>
+            <div id="auth-status" class="flex gap-4 items-center">
+                <span id="user-email" class="text-sm text-slate-400">Not logged in</span>
+                <button id="logout-btn" onclick="logout()" class="hidden text-sm bg-rose-600 hover:bg-rose-500 text-white px-3 py-1 rounded">Logout</button>
+            </div>
+        </header>
+
+        <!-- Auth Section (Login / Register) -->
+        <section id="auth-section" class="max-w-md mx-auto bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700">
+            <h2 id="auth-title" class="text-xl font-bold mb-4 text-center">Login</h2>
+            <form id="auth-form" onsubmit="handleAuth(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="auth-email" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="auth-password" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400">
+                </div>
+                <button type="submit" id="auth-submit-btn" class="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 rounded mb-3">Login</button>
+            </form>
+            <p class="text-sm text-center text-slate-400">
+                <span id="auth-toggle-text">Don't have an account?</span> 
+                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-sky-400 underline">Register</button>
+            </p>
+            <div id="auth-error" class="hidden mt-4 text-sm text-rose-400 text-center"></div>
+        </section>
+
+        <!-- Main Dashboard (Hidden by default) -->
+        <main id="dashboard-section" class="hidden space-y-8">
+            <!-- Add Item Form -->
+            <section class="bg-slate-800 p-6 rounded-lg border border-slate-700">
+                <h2 class="text-lg font-semibold mb-4 text-sky-300">Add New Snippet or Link</h2>
+                <form onsubmit="createItem(event)" class="space-y-4">
+                    <div class="flex gap-4">
+                        <select id="item-type" class="bg-slate-900 border border-slate-700 rounded p-2 text-white">
+                            <option value="text">Text Note</option>
+                            <option value="link">Web Link</option>
+                        </select>
+                        <input type="text" id="item-title" placeholder="Title (optional)" class="flex-1 bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400">
+                    </div>
+                    <textarea id="item-content" required rows="3" placeholder="Paste your text or URL here..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400"></textarea>
+                    <button type="submit" class="bg-sky-500 hover:bg-sky-400 font-bold px-6 py-2 rounded text-white">Save Item</button>
+                </form>
+            </section>
+
+            <!-- Items Feed -->
+            <section>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-sky-300">Your Workspace Feed</h2>
+                    <button onclick="fetchItems()" class="text-sm text-slate-400 hover:text-white">🔄 Refresh</button>
+                </div>
+                <div id="items-list" class="grid gap-4 md:grid-cols-2">
+                    <!-- Items will render dynamically here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
