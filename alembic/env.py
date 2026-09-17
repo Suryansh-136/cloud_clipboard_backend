@@ -11,7 +11,7 @@ import app.models  # Loads User and Item models
 config = context.config
 
 from app.config import settings
-from app.db.base_class import Base
+from app.config import Base
 import app.models  # Ensures User and Item models are loaded
 
 
