@@ -6,6 +6,9 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+class TokenPayload(BaseModel):
+    sub: Optional[str] = None
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
@@ -16,6 +19,11 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ItemCreate(BaseModel):
+    item_type: str
+    title: Optional[str] = None
+    content: Optional[str] = None
 
 class ItemResponse(BaseModel):
     id: int
@@ -29,8 +37,3 @@ class ItemResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-class ItemCreate(BaseModel):
-    item_type: str
-    title: Optional[str] = None
-    content: str
