@@ -10,7 +10,7 @@ import app.models  # Loads User and Item models
 # access to the values within the .ini file in use.
 config = context.config
 
-from app.core.config import settings
+from app.config import settings
 from app.db.base_class import Base
 import app.models  # Ensures User and Item models are loaded
 
