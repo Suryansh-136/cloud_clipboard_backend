@@ -22,7 +22,7 @@ engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-class Base(DeclarativeBase):
+class Base(declarative_base):
     """Base class for all SQLAlchemy ORM models."""
 
 
