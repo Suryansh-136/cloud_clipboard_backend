@@ -41,4 +41,14 @@ class MegaStorage:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
+    def delete_file_by_url(self, url: str):
+        client = self._get_client()
+        try:
+            # Find the file node on MEGA using its URL link
+            file_node = client.find_by_url(url)
+            if file_node:
+                client.delete(file_node[0])
+        except Exception as e:
+            print(f"Failed to delete file from MEGA: {e}")
+
 mega_storage = MegaStorage()
