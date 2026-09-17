@@ -1,55 +1,36 @@
-from datetime import datetime
+from pydantic import BaseModel, EmailStr
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, EmailStr
+from datetime import datetime
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
-# --- User Schemas ---
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
-
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
-    is_active: bool
-    created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        from_attributes = True
 
-
-
-# --- Item Schemas ---
-class ItemBase(BaseModel):
-    title: Optional[str] = None
-    content: Optional[str] = None  # Text note content OR URL link
-
-
-class ItemCreate(ItemBase):
-    item_type: str  # 'text' or 'link'
-
-
-class ItemResponse(ItemBase):
+class ItemResponse(BaseModel):
     id: int
-    user_id: int
     item_type: str
+    title: Optional[str] = None
+    content: Optional[str] = None
     file_path: Optional[str] = None
-    file_name: Optional[str] = None
-    mime_type: Optional[str] = None
+    file_type: Optional[str] = None
     file_size: Optional[int] = None
     created_at: datetime
-    updated_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        from_attributes = True
 
-
-# --- Auth Token Schemas ---
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-
-
-class TokenPayload(BaseModel):
-    sub: Optional[int] = None
-
-
+class ItemCreate(BaseModel):
+    item_type: str
+    title: Optional[str] = None
+    content: str

@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.config import Base
 
@@ -27,40 +27,19 @@ class User(Base):
 class Item(Base):
     __tablename__ = "items"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
-    )
-
-    # Item classification: 'text', 'link', 'file', 'image'
-    item_type: Mapped[str] = mapped_column(String(50), nullable=False)
-
-    # Text & Link content
-    title: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    content: Mapped[Optional[str]] = mapped_column(
-        Text, nullable=True
-    )  # Holds text note or URL
-
-    # File metadata
-    file_path: Mapped[Optional[str]] = mapped_column(
-        String(512), nullable=True
-    )
-    file_name: Mapped[Optional[str]] = mapped_column(
-        String(255), nullable=True
-    )
-    mime_type: Mapped[Optional[str]] = mapped_column(
-        String(100), nullable=True
-    )
-    file_size: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-    )
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    item_type = Column(String, nullable=False)  # 'text', 'link', 'image', 'file'
+    title = Column(String, nullable=True)
+    content = Column(Text, nullable=True)  # Text content or notes
+    
+    # New file metadata columns
+    file_path = Column(String, nullable=True)  # Public MEGA URL
+    file_type = Column(String, nullable=True)  # MIME type (e.g. image/png)
+    file_size = Column(Integer, nullable=True)  # Size in bytes
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationship back to User owner
-    owner: Mapped["User"] = relationship("User", back_populates="items")
+    owner = relationship("User", back_populates="items")
+    items = relationship("Item", back_populates="owner")

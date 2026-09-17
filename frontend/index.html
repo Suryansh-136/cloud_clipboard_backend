@@ -1,76 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Clipboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-3 sm:p-6">
+<!-- Inside frontend/index.html: Replace the Add Item Form inside <main> -->
+<section class="bg-slate-800 p-4 sm:p-6 rounded-lg border border-slate-700">
+    <h2 class="text-lg font-semibold mb-4 text-sky-300">Add New Snippet, Link, or File</h2>
+    <form onsubmit="handleFormSubmit(event)" class="space-y-4">
+        <div class="flex flex-col sm:flex-row gap-3">
+            <select id="item-type" onchange="toggleInputType()" class="bg-slate-900 border border-slate-700 rounded p-2 text-white sm:w-40 focus:outline-none">
+                <option value="text">Text Note</option>
+                <option value="link">Web Link</option>
+                <option value="file">File / Image Upload</option>
+            </select>
+            <input type="text" id="item-title" placeholder="Title (optional)" class="w-full sm:flex-1 bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400">
+        </div>
 
-    <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <header class="flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between items-start sm:items-center mb-6 border-b border-slate-700 pb-4">
-            <h1 class="text-2xl font-bold text-sky-400">🌉 Cloud Clipboard</h1>
-            <div id="auth-status" class="w-full sm:w-auto flex justify-between sm:justify-start items-center gap-3">
-                <span id="user-email" class="text-xs sm:text-sm text-slate-400 truncate max-w-[200px] sm:max-w-none">Not logged in</span>
-                <button id="logout-btn" onclick="logout()" class="hidden text-xs sm:text-sm bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded shrink-0">Logout</button>
-            </div>
-        </header>
+        <!-- Text / Link Input -->
+        <div id="text-input-container">
+            <textarea id="item-content" rows="3" placeholder="Paste your text or URL here..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400"></textarea>
+        </div>
 
-        <!-- Auth Section -->
-        <section id="auth-section" class="max-w-md mx-auto bg-slate-800 p-6 rounded-lg shadow-lg border border-slate-700">
-            <h2 id="auth-title" class="text-xl font-bold mb-4 text-center">Login</h2>
-            <form id="auth-form" onsubmit="handleAuth(event)">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" id="auth-email" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400">
-                </div>
-                <div class="mb-6">
-                    <label class="block text-sm font-medium mb-1">Password</label>
-                    <input type="password" id="auth-password" required class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400">
-                </div>
-                <button type="submit" id="auth-submit-btn" class="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-2 rounded mb-3">Login</button>
-            </form>
-            <p class="text-sm text-center text-slate-400">
-                <span id="auth-toggle-text">Don't have an account?</span> 
-                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-sky-400 underline ml-1">Register</button>
-            </p>
-            <div id="auth-error" class="hidden mt-4 text-sm text-rose-400 text-center"></div>
-        </section>
+        <!-- File Upload Input (Hidden by default) -->
+        <div id="file-input-container" class="hidden">
+            <label class="block text-sm font-medium text-slate-300 mb-2">Choose File to Upload (Images, PDFs, Docs)</label>
+            <input type="file" id="item-file" class="w-full bg-slate-900 border border-slate-700 text-slate-300 rounded p-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-sky-600 file:text-white hover:file:bg-sky-500 cursor-pointer">
+        </div>
 
-        <!-- Main Dashboard -->
-        <main id="dashboard-section" class="hidden space-y-6">
-            <!-- Add Item Form -->
-            <section class="bg-slate-800 p-4 sm:p-6 rounded-lg border border-slate-700">
-                <h2 class="text-lg font-semibold mb-4 text-sky-300">Add New Snippet or Link</h2>
-                <form onsubmit="createItem(event)" class="space-y-4">
-                    <!-- Stacked vertically on phone, row on larger screens -->
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <select id="item-type" class="bg-slate-900 border border-slate-700 rounded p-2 text-white sm:w-36">
-                            <option value="text">Text Note</option>
-                            <option value="link">Web Link</option>
-                        </select>
-                        <input type="text" id="item-title" placeholder="Title (optional)" class="w-full sm:flex-1 bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400">
-                    </div>
-                    <textarea id="item-content" required rows="3" placeholder="Paste your text or URL here..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400"></textarea>
-                    <button type="submit" class="w-full sm:w-auto bg-sky-500 hover:bg-sky-400 font-bold px-6 py-2 rounded text-white">Save Item</button>
-                </form>
-            </section>
-
-            <!-- Items Feed -->
-            <section>
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold text-sky-300">Your Workspace Feed</h2>
-                    <button onclick="fetchItems()" class="text-sm text-slate-400 hover:text-white flex items-center gap-1">🔄 Refresh</button>
-                </div>
-                <div id="items-list" class="grid gap-4 md:grid-cols-2">
-                    <!-- Items render here -->
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <script src="/static/app.js"></script>
-</body>
-</html>
+        <button type="submit" id="submit-btn" class="w-full sm:w-auto bg-sky-500 hover:bg-sky-400 font-bold px-6 py-2 rounded text-white flex items-center justify-center gap-2">
+            <span>Save Item</span>
+        </button>
+    </form>
+</section>

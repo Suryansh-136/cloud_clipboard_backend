@@ -1,63 +1,76 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
-
+from typing import List, Optional
+from app import models, schemas, security
 from app.config import get_db
-from app.models import Item, User
-from app.schemas import ItemCreate, ItemResponse
-from app.security import get_current_user
+from app.mega_service import mega_storage
 
-router = APIRouter(prefix="/items", tags=["Items"])
+router = APIRouter(prefix="/api/v1/items", tags=["items"])
 
-
-@router.post("/", response_model=ItemResponse, status_code=status.HTTP_201_CREATED)
-def create_item(
-    item_in: ItemCreate,
+@router.get("", response_model=List[schemas.ItemResponse])
+def get_user_items(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: models.User = Depends(security.get_current_user)
 ):
-    """Create a text snippet or link item for the authenticated user."""
-    if item_in.item_type not in ["text", "link"]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid item_type. Allowed types: 'text', 'link'",
-        )
+    return db.query(models.Item).filter(models.Item.user_id == current_user.id).order_by(models.Item.created_at.desc()).all()
 
-    new_item = Item(
+@router.post("", response_model=schemas.ItemResponse)
+def create_text_item(
+    item_in: schemas.ItemCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_user)
+):
+    new_item = models.Item(
         user_id=current_user.id,
         item_type=item_in.item_type,
         title=item_in.title,
-        content=item_in.content,
+        content=item_in.content
     )
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
     return new_item
 
+@router.post("/upload", response_model=schemas.ItemResponse)
 
-@router.get("/", response_model=List[ItemResponse])
-def list_items(
+def upload_file_item(
+    title: Optional[str] = Form(None),
+    file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: models.User = Depends(security.get_current_user)
 ):
-    """Retrieve all items owned by the authenticated user."""
-    return db.query(Item).filter(Item.user_id == current_user.id).all()
+    # Determine type (image vs general file)
+    is_image = file.content_type and file.content_type.startswith("image/")
+    item_type = "image" if is_image else "file"
 
+    # Upload to MEGA
+    mega_url = mega_storage.upload_file(file)
+
+    # Save metadata to DB
+    new_item = models.Item(
+        user_id=current_user.id,
+        item_type=item_type,
+        title=title or file.filename,
+        content=file.filename,
+        file_path=mega_url,
+        file_type=file.content_type,
+        file_size=file.size
+    )
+    db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+    return new_item
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: models.User = Depends(security.get_current_user)
 ):
-    """Delete an item owned by the authenticated user."""
-    item = db.query(Item).filter(Item.id == item_id, Item.user_id == current_user.id).first()
+    item = db.query(models.Item).filter(models.Item.id == item_id, models.Item.user_id == current_user.id).first()
     if not item:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Item not found",
-        )
-
+        raise HTTPException(status_code=404, detail="Item not found")
+    
     db.delete(item)
     db.commit()
     return None
