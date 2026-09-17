@@ -12,5 +12,5 @@ bcrypt==4.0.1
 alembic
 python-multipart
 pycryptodome
-mega.py
+mega-py-v2
 tenacity>=8.2.0
