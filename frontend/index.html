@@ -1,29 +1,80 @@
-<!-- Inside frontend/index.html: Replace the Add Item Form inside <main> -->
-<section class="bg-slate-800 p-4 sm:p-6 rounded-lg border border-slate-700">
-    <h2 class="text-lg font-semibold mb-4 text-sky-300">Add New Snippet, Link, or File</h2>
-    <form onsubmit="handleFormSubmit(event)" class="space-y-4">
-        <div class="flex flex-col sm:flex-row gap-3">
-            <select id="item-type" onchange="toggleInputType()" class="bg-slate-900 border border-slate-700 rounded p-2 text-white sm:w-40 focus:outline-none">
-                <option value="text">Text Note</option>
-                <option value="link">Web Link</option>
-                <option value="file">File / Image Upload</option>
-            </select>
-            <input type="text" id="item-title" placeholder="Title (optional)" class="w-full sm:flex-1 bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Digital Bridge</title>
+    <!-- Tailwind CSS CDN for instant styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col justify-between p-4 sm:p-8">
+
+    <div class="max-w-3xl w-full mx-auto space-y-6">
+        <!-- Header -->
+        <header class="flex justify-between items-center border-b border-gray-700 pb-4">
+            <h1 class="text-2xl font-bold text-indigo-400">Personal Digital Bridge</h1>
+            <span class="text-xs text-gray-400 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">24-Hour Auto Expire</span>
+        </header>
+
+        <!-- Input Section -->
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg space-y-4">
+            <h2 class="text-lg font-semibold text-gray-200">Add New Snippet, Link, or File</h2>
+
+            <form id="uploadForm" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <select id="contentType" class="bg-gray-700 text-gray-200 border border-gray-600 text-sm rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="text">Text / Snippet</option>
+                        <option value="file">File / Media</option>
+                    </select>
+                    
+                    <input type="text" id="itemTitle" placeholder="Title (optional)" class="sm:col-span-2 bg-gray-700 text-gray-200 border border-gray-600 text-sm rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Text Payload Input -->
+                <div id="textInputArea">
+                    <textarea id="textPayload" rows="4" placeholder="Paste your text or URL here..." class="w-full bg-gray-700 text-gray-200 border border-gray-600 text-sm rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                </div>
+
+                <!-- File Input -->
+                <div id="fileInputArea" class="hidden">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Choose File to Upload (Images, PDFs, Docs, Media)</label>
+                    <input type="file" id="filePayload" class="block w-full text-sm text-gray-400 border border-gray-600 rounded-lg cursor-pointer bg-gray-700 focus:outline-none">
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm px-5 py-2.5 transition">Save Item</button>
+            </form>
         </div>
 
-        <!-- Text / Link Input -->
-        <div id="text-input-container">
-            <textarea id="item-content" rows="3" placeholder="Paste your text or URL here..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-sky-400"></textarea>
+        <!-- Saved Items List -->
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg space-y-4">
+            <h2 class="text-lg font-semibold text-gray-200">Your Clipboard Items</h2>
+            <div id="itemList" class="space-y-3">
+                <p class="text-sm text-gray-400 italic">No items uploaded yet.</p>
+            </div>
         </div>
+    </div>
 
-        <!-- File Upload Input (Hidden by default) -->
-        <div id="file-input-container" class="hidden">
-            <label class="block text-sm font-medium text-slate-300 mb-2">Choose File to Upload (Images, PDFs, Docs)</label>
-            <input type="file" id="item-file" class="w-full bg-slate-900 border border-slate-700 text-slate-300 rounded p-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-sky-600 file:text-white hover:file:bg-sky-500 cursor-pointer">
-        </div>
+    <!-- Footer -->
+    <footer class="text-center text-xs text-gray-500 py-4">
+        Powered by FastAPI & MEGA Storage
+    </footer>
 
-        <button type="submit" id="submit-btn" class="w-full sm:w-auto bg-sky-500 hover:bg-sky-400 font-bold px-6 py-2 rounded text-white flex items-center justify-center gap-2">
-            <span>Save Item</span>
-        </button>
-    </form>
-</section>
+    <!-- Frontend Logic -->
+    <script>
+        const contentTypeSelect = document.getElementById('contentType');
+        const textInputArea = document.getElementById('textInputArea');
+        const fileInputArea = document.getElementById('fileInputArea');
+
+        // Toggle text/file inputs based on selection
+        contentTypeSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'file') {
+                textInputArea.classList.add('hidden');
+                fileInputArea.classList.remove('hidden');
+            } else {
+                fileInputArea.classList.add('hidden');
+                textInputArea.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
