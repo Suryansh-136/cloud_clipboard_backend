@@ -4,77 +4,165 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Digital Bridge</title>
-    <!-- Tailwind CSS CDN for instant styling -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col justify-between p-4 sm:p-8">
 
     <div class="max-w-3xl w-full mx-auto space-y-6">
-        <!-- Header -->
         <header class="flex justify-between items-center border-b border-gray-700 pb-4">
             <h1 class="text-2xl font-bold text-indigo-400">Personal Digital Bridge</h1>
-            <span class="text-xs text-gray-400 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">24-Hour Auto Expire</span>
+            <div id="authStatus" class="text-xs text-gray-400 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">Not Logged In</div>
         </header>
 
-        <!-- Input Section -->
-        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg space-y-4">
-            <h2 class="text-lg font-semibold text-gray-200">Add New Snippet, Link, or File</h2>
-
-            <form id="uploadForm" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <select id="contentType" class="bg-gray-700 text-gray-200 border border-gray-600 text-sm rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="text">Text / Snippet</option>
-                        <option value="file">File / Media</option>
-                    </select>
-                    
-                    <input type="text" id="itemTitle" placeholder="Title (optional)" class="sm:col-span-2 bg-gray-700 text-gray-200 border border-gray-600 text-sm rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
-                </div>
-
-                <!-- Text Payload Input -->
-                <div id="textInputArea">
-                    <textarea id="textPayload" rows="4" placeholder="Paste your text or URL here..." class="w-full bg-gray-700 text-gray-200 border border-gray-600 text-sm rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
-                </div>
-
-                <!-- File Input -->
-                <div id="fileInputArea" class="hidden">
-                    <label class="block text-sm font-medium text-gray-300 mb-1">Choose File to Upload (Images, PDFs, Docs, Media)</label>
-                    <input type="file" id="filePayload" class="block w-full text-sm text-gray-400 border border-gray-600 rounded-lg cursor-pointer bg-gray-700 focus:outline-none">
-                </div>
-
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm px-5 py-2.5 transition">Save Item</button>
+        <!-- Auth Section -->
+        <div id="authCard" class="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg space-y-4">
+            <div class="flex border-b border-gray-700 mb-4">
+                <button id="tabLogin" class="py-2 px-4 font-semibold text-indigo-400 border-b-2 border-indigo-400">Login</button>
+                <button id="tabRegister" class="py-2 px-4 font-semibold text-gray-400">Register</button>
+            </div>
+            
+            <form id="authForm" class="space-y-4">
+                <input type="email" id="authEmail" placeholder="Email" required class="w-full bg-gray-700 text-gray-200 border border-gray-600 rounded-lg p-2.5">
+                <input type="password" id="authPassword" placeholder="Password" required class="w-full bg-gray-700 text-gray-200 border border-gray-600 rounded-lg p-2.5">
+                <button type="submit" id="authBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg p-2.5">Login</button>
             </form>
         </div>
 
-        <!-- Saved Items List -->
-        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg space-y-4">
-            <h2 class="text-lg font-semibold text-gray-200">Your Clipboard Items</h2>
-            <div id="itemList" class="space-y-3">
-                <p class="text-sm text-gray-400 italic">No items uploaded yet.</p>
+        <!-- Main App Section (Hidden until Login) -->
+        <div id="appCard" class="hidden space-y-6">
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-200">Add New Snippet or File</h2>
+                    <button id="logoutBtn" class="text-xs text-red-400 hover:underline">Logout</button>
+                </div>
+
+                <form id="uploadForm" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <select id="contentType" class="bg-gray-700 text-gray-200 border border-gray-600 rounded-lg p-2.5">
+                            <option value="text">Text / Snippet</option>
+                            <option value="file">File / Media</option>
+                        </select>
+                        <input type="text" id="itemTitle" placeholder="Title (optional)" class="sm:col-span-2 bg-gray-700 text-gray-200 border border-gray-600 rounded-lg p-2.5">
+                    </div>
+
+                    <div id="textInputArea">
+                        <textarea id="textPayload" rows="4" placeholder="Paste your text or URL here..." class="w-full bg-gray-700 text-gray-200 border border-gray-600 rounded-lg p-2.5"></textarea>
+                    </div>
+
+                    <div id="fileInputArea" class="hidden">
+                        <input type="file" id="filePayload" class="block w-full text-sm text-gray-400 border border-gray-600 rounded-lg bg-gray-700">
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg p-2.5">Save Item</button>
+                </form>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg space-y-4">
+                <h2 class="text-lg font-semibold text-gray-200">Your Saved Items</h2>
+                <div id="itemList" class="space-y-3"><p class="text-sm text-gray-400 italic">No items yet.</p></div>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="text-center text-xs text-gray-500 py-4">
-        Powered by FastAPI & MEGA Storage
-    </footer>
-
-    <!-- Frontend Logic -->
     <script>
-        const contentTypeSelect = document.getElementById('contentType');
-        const textInputArea = document.getElementById('textInputArea');
-        const fileInputArea = document.getElementById('fileInputArea');
+        let isLogin = true;
+        let token = localStorage.getItem('token');
 
-        // Toggle text/file inputs based on selection
-        contentTypeSelect.addEventListener('change', (e) => {
-            if (e.target.value === 'file') {
-                textInputArea.classList.add('hidden');
-                fileInputArea.classList.remove('hidden');
+        const authCard = document.getElementById('authCard');
+        const appCard = document.getElementById('appCard');
+        const authStatus = document.getElementById('authStatus');
+
+        function checkAuth() {
+            if(token) {
+                authCard.classList.add('hidden');
+                appCard.classList.remove('hidden');
+                authStatus.innerText = 'Authenticated';
+                loadItems();
             } else {
-                fileInputArea.classList.add('hidden');
-                textInputArea.classList.remove('hidden');
+                authCard.classList.remove('hidden');
+                appCard.classList.add('hidden');
+                authStatus.innerText = 'Not Logged In';
             }
-        });
+        }
+
+        // Toggle Login/Register Tabs
+        document.getElementById('tabLogin').onclick = () => { isLogin = true; document.getElementById('authBtn').innerText = 'Login'; };
+        document.getElementById('tabRegister').onclick = () => { isLogin = false; document.getElementById('authBtn').innerText = 'Register'; };
+
+        // Handle Auth
+        document.getElementById('authForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const endpoint = isLogin ? '/api/v1/auth/login' : '/api/v1/auth/register';
+
+            const formData = new FormData();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            const res = await fetch(endpoint, { method: 'POST', body: isLogin ? formData : JSON.stringify({email, password}), headers: isLogin ? {} : {'Content-Type': 'application/json'} });
+            const data = await res.json();
+
+            if (res.ok) {
+                if(isLogin) {
+                    token = data.access_token;
+                    localStorage.setItem('token', token);
+                    checkAuth();
+                } else {
+                    alert('Registration successful! Please login.');
+                }
+            } else {
+                alert(data.detail || 'Authentication failed');
+            }
+        };
+
+        // Logout
+        document.getElementById('logoutBtn').onclick = () => {
+            localStorage.removeItem('token');
+            token = null;
+            checkAuth();
+        };
+
+        // Fetch Items
+        async function loadItems() {
+            const res = await fetch('/api/v1/items/', { headers: { 'Authorization': `Bearer ${token}` } });
+            if(res.ok) {
+                const items = await res.json();
+                const list = document.getElementById('itemList');
+                if(items.length === 0) { list.innerHTML = '<p class="text-sm text-gray-400 italic">No items saved yet.</p>'; return; }
+                list.innerHTML = items.map(i => `
+                    <div class="bg-gray-700 p-3 rounded-lg flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-bold text-indigo-400 uppercase">${i.content_type}</span>
+                            <p class="text-sm text-gray-200 mt-1">${i.text_payload || 'File Attachment'}</p>
+                        </div>
+                        ${i.file_path ? `<a href="${i.file_path}" target="_blank" class="text-xs bg-indigo-600 px-3 py-1 rounded">Download</a>` : ''}
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Save Item
+        document.getElementById('uploadForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const type = document.getElementById('contentType').value;
+            const text = document.getElementById('textPayload').value;
+            
+            const res = await fetch('/api/v1/items/', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content_type: type, text_payload: text })
+            });
+
+            if(res.ok) {
+                document.getElementById('textPayload').value = '';
+                loadItems();
+            } else {
+                alert('Failed to save item.');
+            }
+        };
+
+        checkAuth();
     </script>
 </body>
 </html>
