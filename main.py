@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy import text
 from contextlib import asynccontextmanager
+from app.config import engine, Base
 from apscheduler.schedulers.background import BackgroundScheduler
 from sqlalchemy.orm import Session
 import os

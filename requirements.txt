@@ -15,3 +15,5 @@ pycryptodome
 mega-py-v2
 tenacity>=8.2.0
 apscheduler
+pytest
+httpx
