@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy import text
 from contextlib import asynccontextmanager
 from app.config import engine, Base
+from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 from sqlalchemy.orm import Session
 import os
@@ -18,19 +19,44 @@ Base.metadata.create_all(bind=engine)
 # Setup Background Scheduler
 scheduler = BackgroundScheduler()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Har 30 min mein background cleanup chalega
+    scheduler.add_job(delete_expired_items, 'interval', minutes=30)
+    scheduler.start()
+    print("[Scheduler] Background cleanup task has been started.")
+    yield
+    scheduler.shutdown()
+    print("[Scheduler] Background cleanup task has been stopped.")
+
+app = FastAPI(lifespan=lifespan)
+
+# Enable CORS for browser requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Routers
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(items.router, prefix="/api/v1/items", tags=["items"])
+
+
 app = FastAPI(
     title="Cloud Clipboard",
     description="Backend API for personal cross-device workspace",
     version="0.1.0",
 )
 
-# Register API endpoints
-app.include_router(auth.router, prefix="/api/v1")
-app.include_router(items.router, prefix="/api/v1")
+# Routers
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(items.router, prefix="/api/v1/items", tags=["items"])
 
 # Serve frontend static files
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
-
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 @app.get("/")
 def read_root():
@@ -52,13 +78,3 @@ def db_check(db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=500, detail=f"Database connection failed: {str(e)}"
         )
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Runs the cleanup function every 30 minutes
-    scheduler.add_job(delete_expired_items, 'interval', minutes=30)
-    scheduler.start()
-    print("[Scheduler] Started background cleanup task (every 30 mins).")
-    yield
-    scheduler.shutdown()
-    print("[Scheduler] Shutdown completed.")
