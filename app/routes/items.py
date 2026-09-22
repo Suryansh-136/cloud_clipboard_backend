@@ -1,76 +1,86 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from sqlalchemy.orm import Session
 from typing import List, Optional
-from app import models, schemas, security
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
+
 from app.config import get_db
 from app.mega_service import mega_storage
+from app.models import Item, User
+from app.schemas import ItemCreate, ItemResponse
+from app.security import get_current_user
 
-router = APIRouter(prefix="/api/v1/items", tags=["items"])
+router = APIRouter(prefix="/items", tags=["items"])
 
-@router.get("", response_model=List[schemas.ItemResponse])
-def get_user_items(
+
+@router.get("/", response_model=List[ItemResponse])
+def get_items(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    return db.query(models.Item).filter(models.Item.user_id == current_user.id).order_by(models.Item.created_at.desc()).all()
+    return db.query(Item).filter(Item.user_id == current_user.id).all()
 
-@router.post("", response_model=schemas.ItemResponse)
-def create_text_item(
-    item_in: schemas.ItemCreate,
+
+@router.post("/", response_model=ItemResponse, status_code=status.HTTP_201_CREATED)
+def create_item(
+    item_in: ItemCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    new_item = models.Item(
+    new_item = Item(
+        content_type=item_in.content_type,
+        text_payload=item_in.text_payload,
+        file_path=item_in.file_path,
         user_id=current_user.id,
-        item_type=item_in.item_type,
-        title=item_in.title,
-        content=item_in.content
     )
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
     return new_item
 
-@router.post("/upload", response_model=schemas.ItemResponse)
 
+@router.post("/upload", response_model=ItemResponse, status_code=status.HTTP_201_CREATED)
 def upload_file_item(
     title: Optional[str] = Form(None),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     # Determine type (image vs general file)
     is_image = file.content_type and file.content_type.startswith("image/")
-    item_type = "image" if is_image else "file"
+    content_type = "image" if is_image else "file"
 
-    # Upload to MEGA
+    # Upload to MEGA storage
     mega_url = mega_storage.upload_file(file)
 
-    # Save metadata to DB
-    new_item = models.Item(
+    # Save metadata to DB using matching schema fields
+    new_item = Item(
         user_id=current_user.id,
-        item_type=item_type,
-        title=title or file.filename,
-        content=file.filename,
+        content_type=content_type,
+        text_payload=title or file.filename,
         file_path=mega_url,
-        file_type=file.content_type,
-        file_size=file.size
+        file_size=file.size if hasattr(file, "size") else None,
     )
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
     return new_item
+
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(security.get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    item = db.query(models.Item).filter(models.Item.id == item_id, models.Item.user_id == current_user.id).first()
+    item = (
+        db.query(Item)
+        .filter(Item.id == item_id, Item.user_id == current_user.id)
+        .first()
+    )
     if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found"
+        )
+
     db.delete(item)
     db.commit()
     return None

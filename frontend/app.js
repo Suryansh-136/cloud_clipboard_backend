@@ -2,25 +2,29 @@
 listEl.innerHTML = items.map(item => {
     let contentHtml = '';
 
-    if (item.item_type === 'link') {
-        contentHtml = `<a href="${escapeHtml(item.content)}" target="_blank" class="text-sky-400 hover:underline [word-break:break-word]">${escapeHtml(item.content)}</a>`;
-    } else if (item.item_type === 'image') {
+    // Backend field name is 'content_type'
+    if (item.content_type === 'link') {
+        const linkUrl = item.text_payload || '';
+        contentHtml = `<a href="${escapeHtml(linkUrl)}" target="_blank" class="text-sky-400 hover:underline [word-break:break-word]">${escapeHtml(linkUrl)}</a>`;
+    } else if (item.content_type === 'image') {
         contentHtml = `
             <div class="space-y-2">
                 <a href="${item.file_path}" target="_blank" class="inline-block font-semibold text-sky-400 hover:underline">View Full Image ↗</a>
             </div>`;
-    } else if (item.item_type === 'file') {
+    } else if (item.content_type === 'file') {
         const sizeMb = item.file_size ? (item.file_size / (1024 * 1024)).toFixed(2) : 'N/A';
+        const fileName = item.text_payload || item.file_path || 'Download File';
         contentHtml = `
             <div class="bg-slate-900/60 p-3 rounded border border-slate-700/60 flex items-center justify-between">
                 <div>
-                    <p class="font-medium text-slate-200 [word-break:break-word]">${escapeHtml(item.content)}</p>
+                    <p class="font-medium text-slate-200 [word-break:break-word]">${escapeHtml(fileName)}</p>
                     <span class="text-xs text-slate-500">${sizeMb} MB</span>
                 </div>
                 <a href="${item.file_path}" target="_blank" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-3 py-1.5 rounded shrink-0 font-medium">Download</a>
             </div>`;
     } else {
-        contentHtml = `<p class="text-slate-300 whitespace-pre-wrap [word-break:break-word]">${escapeHtml(item.content)}</p>`;
+        // Fallback for plain text items
+        contentHtml = `<p class="text-slate-300 whitespace-pre-wrap [word-break:break-word]">${escapeHtml(item.text_payload || '')}</p>`;
     }
 
     return `
@@ -28,11 +32,11 @@ listEl.innerHTML = items.map(item => {
             <div>
                 <div class="flex justify-between items-start mb-2">
                     <span class="text-xs uppercase font-bold tracking-wider px-2 py-0.5 rounded ${
-                        item.item_type === 'image' ? 'bg-purple-900/60 text-purple-300' :
-                        item.item_type === 'file' ? 'bg-emerald-900/60 text-emerald-300' :
-                        item.item_type === 'link' ? 'bg-indigo-900/60 text-indigo-300' : 'bg-slate-700 text-slate-300'
+                        item.content_type === 'image' ? 'bg-purple-900/60 text-purple-300' :
+                        item.content_type === 'file' ? 'bg-emerald-900/60 text-emerald-300' :
+                        item.content_type === 'link' ? 'bg-indigo-900/60 text-indigo-300' : 'bg-slate-700 text-slate-300'
                     }">
-                        ${item.item_type}
+                        ${escapeHtml(item.content_type)}
                     </span>
                     <span class="text-xs text-slate-500">${new Date(item.created_at).toLocaleDateString()}</span>
                 </div>

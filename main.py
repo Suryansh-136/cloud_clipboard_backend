@@ -1,17 +1,15 @@
-from fastapi import Depends, FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from sqlalchemy import text
 from contextlib import asynccontextmanager
-from app.config import engine, Base
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from apscheduler.schedulers.background import BackgroundScheduler
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 from sqlalchemy.orm import Session
-import os
+from apscheduler.schedulers.background import BackgroundScheduler
 
-from app.config import get_db
-from app.routes import auth, items
 from app.cleanup import delete_expired_items
+from app.config import Base, engine, get_db
+from app.routes import auth, items
 
 # Initialize database tables
 Base.metadata.create_all(bind=engine)
@@ -19,19 +17,27 @@ Base.metadata.create_all(bind=engine)
 # Setup Background Scheduler
 scheduler = BackgroundScheduler()
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Har 30 min mein background cleanup chalega
-    scheduler.add_job(delete_expired_items, 'interval', minutes=30)
+    # Runs cleanup job every 30 minutes
+    scheduler.add_job(delete_expired_items, "interval", minutes=30)
     scheduler.start()
-    print("[Scheduler] Background cleanup task has been started.")
+    print("[Scheduler] Background cleanup task started.")
     yield
     scheduler.shutdown()
-    print("[Scheduler] Background cleanup task has been stopped.")
+    print("[Scheduler] Background cleanup task stopped.")
 
-app = FastAPI(lifespan=lifespan)
 
-# Enable CORS for browser requests
+# Single FastAPI instance with lifespan and metadata
+app = FastAPI(
+    title="Cloud Clipboard",
+    description="Backend API for personal cross-device workspace",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+# Enable CORS for frontend requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,28 +46,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-app.include_router(items.router, prefix="/api/v1/items", tags=["items"])
-
-
-app = FastAPI(
-    title="Cloud Clipboard",
-    description="Backend API for personal cross-device workspace",
-    version="0.1.0",
-)
-
-# Routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-app.include_router(items.router, prefix="/api/v1/items", tags=["items"])
-
-# Serve frontend static files
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
-
-@app.get("/")
-def read_root():
-    """Serve the main frontend UI."""
-    return FileResponse("frontend/index.html")
+# Include Routers with /api/v1 prefix
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(items.router, prefix="/api/v1")
 
 
 @app.get("/health")
@@ -78,3 +65,8 @@ def db_check(db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=500, detail=f"Database connection failed: {str(e)}"
         )
+
+
+# Serve frontend static files at root
+# Note: html=True automatically serves frontend/index.html when hitting '/'
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
