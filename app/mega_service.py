@@ -62,4 +62,20 @@ class MegaStorage:
             print(f"Failed to delete file from MEGA: {e}")
 
 
+    def download_file_stream(self, file_handle: str):
+        """
+        Temporary storage me download karke stream bytes return karega
+        """
+        # Node handle se file find karo
+        file_node = self.m.find_by_handle(file_handle)
+        
+        # Temp directory me file download karo
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_path = self.m.download(file_node, temp_dir)
+            
+            # File read karke yield (stream) karo
+            with open(file_path, "rb") as f:
+                while chunk := f.read(1024 * 1024):  # 1MB Chunks
+                    yield chunk
+
 mega_storage = MegaStorage()

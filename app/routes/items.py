@@ -1,7 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
-
+import urllib.parse
 from app.config import get_db
 from app.mega_service import mega_storage
 from app.models import Item, User
@@ -84,3 +84,24 @@ def delete_item(
     db.delete(item)
     db.commit()
     return None
+
+
+@router.get("/api/v1/items/{item_id}/download")
+def download_item(item_id: int, db=Depends(get_db)):
+    # 1. PostgreSQL DB se file record uthao
+    item = db.query(Item).filter(Item.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    # 2. Filename encoding handle karein (special characters ke liye)
+    encoded_filename = urllib.parse.quote(item.file_name)
+
+    # 3. FastAPI StreamingResponse return karein
+    return StreamingResponse(
+        mega_service.download_file_stream(item.mega_handle),
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}",
+            "Access-Control-Expose-Headers": "Content-Disposition"
+        }
+    )
