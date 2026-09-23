@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from apscheduler.schedulers.background import BackgroundScheduler
-
+import app.models
 from app.cleanup import delete_expired_items
 from app.config import Base, engine, get_db
 from app.routes import auth, items
