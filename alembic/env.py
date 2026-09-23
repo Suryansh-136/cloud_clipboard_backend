@@ -11,7 +11,7 @@ config = context.config
 
 # Escape '%' characters for ConfigParser compatibility and inject DATABASE_URL
 if settings.DATABASE_URL:
-    escaped_db_url = settings.DATABASE_URL.replace("%", "%%")
+    escaped_db_url = settings.DATABASE_URL
     config.set_main_option("sqlalchemy.url", escaped_db_url)
 
 # Interpret the config file for Python logging
@@ -27,9 +27,9 @@ def run_migrations_offline() -> None:
 
     Generates SQL scripts directly without requiring an active database connection.
     """
-    url = config.get_main_option("sqlalchemy.url")
+    # url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url,
+        url=settings.DATABASE_URL,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
