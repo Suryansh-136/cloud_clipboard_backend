@@ -3,6 +3,7 @@ uvicorn
 gunicorn
 sqlalchemy
 psycopg2-binary
+psycopg
 pydantic
 pydantic-settings
 email-validator
