@@ -4,8 +4,9 @@ from sqlalchemy.orm import Session
 import urllib.parse
 from app.config import get_db
 from app.mega_service import mega_storage
+from app import schemas
 from app.models import Item, User
-from app.schemas import ItemCreate, ItemResponse
+from app.schemas import ItemCreate, ItemResponse, ItemOut
 from app.security import get_current_user
 
 router = APIRouter(prefix="/items", tags=["items"])
@@ -105,3 +106,23 @@ def download_item(item_id: int, db=Depends(get_db)):
             "Access-Control-Expose-Headers": "Content-Disposition"
         }
     )
+
+
+@router.get("/public/{share_key}", response_model=list[schemas.ItemOut])
+def get_public_items(
+    share_key: str,
+    db: Session = Depends(get_db)
+):
+    # 1. First, search user by share_key in Database
+    user = db.query(models.User).filter(models.User.share_key == share_key).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invalid or expired share key"
+        )
+    
+    # 2. Fetch all clipboard items belonging to this user
+    items = db.query(models.Item).filter(models.Item.owner_id == user.id).all()
+    
+    return items

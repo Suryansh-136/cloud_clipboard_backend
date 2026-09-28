@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
-
+import secrets
 
 # --- Token Schemas ---
 class Token(BaseModel):
@@ -33,6 +33,13 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserOut(BaseModel):
+    id: int 
+    email: str
+    share_key: Optional[str]=None
+
+    model_config = ConfigDict(from_attributes=True)
+
 # --- Item Schemas ---
 class ItemBase(BaseModel):
     content_type: str  # 'text', 'link', 'file', 'image'
@@ -48,5 +55,11 @@ class ItemResponse(ItemBase):
     id: int
     user_id: int
     created_at: datetime
+
+
+class ItemOut(ItemBase):
+    id: int
+    user_id: int
+    share_key: Optional[str]=None
 
     model_config = ConfigDict(from_attributes=True)

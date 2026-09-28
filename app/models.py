@@ -16,7 +16,7 @@ class User(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     items = relationship("Item", back_populates="owner", cascade="all, delete-orphan")
-
+    share_key = Column(String, unique=True, index=True, nullable=True)
 
 class Item(Base):
     __tablename__ = "items"

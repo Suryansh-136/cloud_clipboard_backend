@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-
+import secrets
 from app.config import get_db
 from app.models import User
-from app.schemas import Token, UserCreate, UserResponse
+from app import schemas
+from app.schemas import (Token, UserCreate, UserResponse, UserOut)
 from app.security import (
     create_access_token,
     get_current_user,
@@ -67,4 +68,20 @@ def login(
 @router.get("/me", response_model=UserResponse)
 def read_current_user(current_user: User = Depends(get_current_user)):
     """Returns the authenticated user's profile information."""
+    return current_user
+
+
+@router.post("/generate_share_key", response_model=schemas.UserOut)
+
+def generate_share_key (
+
+    db: Session = Depends(get_db),
+    current_user:models.User = Depends(get_current_user)):
+
+    if not current_user.share_key():
+        unique_key = f"clip{secrets.token_hex(6)}"
+        current_user.share_key = unique_key
+        db.commit
+        db.refresh(current_user)
+
     return current_user
