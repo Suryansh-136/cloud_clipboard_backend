@@ -37,18 +37,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Vercel and Local origins
 origins = [
-    #"http://localhost:5173",
-    "https://cloud-clipboard-frontend.vercel.app/login"  # Apne exact Vercel frontend URL se replace karo
-
-
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://cloud-clipboard-frontend.vercel.app",  # Strictly no trailing slash '/'
 ]
 
-
-# Enable CORS for frontend requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins= ["*"],
+    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Handles preview/branch deployments
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
