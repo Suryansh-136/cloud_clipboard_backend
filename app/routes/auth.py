@@ -6,7 +6,7 @@ from app.config import get_db
 from app import models
 from app.models import User
 from app import schemas
-from app.schemas import (Token, UserCreate, UserResponse, UserOut)
+from app.schemas import (Token, UserCreate, UserResponse, UserOut,)
 from app.security import (
     create_access_token,
     get_current_user,
@@ -79,10 +79,22 @@ def generate_share_key (
     db: Session = Depends(get_db),
     current_user:models.User = Depends(get_current_user)):
 
-    if not current_user.share_key():
-        unique_key = f"clip{secrets.token_hex(6)}"
+    if not current_user.share_key:
+        unique_key = f"clip{secrets.token_hex(16)}"
         current_user.share_key = unique_key
-        db.commit
+        db.add(current_user)
+        db.commit()
         db.refresh(current_user)
 
     return current_user
+
+# @router.get("/public/clips/{share_key}", response_model=List[schemas.ItemOut])
+# def get_public_clips(share_key: str, db: Session = Depends(get_db)):
+#     # 1. Find user from share key
+#     user = db.query(models.User).filter(models.User.share_key == share_key).first()
+#     if not user:
+#         raise HTTPException(status_code=404, detail="Invalid Share Key")
+    
+#     # 2. Fetch and return the items of the user
+#     items = db.query(models.Item).filter(models.Item.user_id == user.id).all()
+#     return items
