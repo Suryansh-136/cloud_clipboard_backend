@@ -39,7 +39,7 @@ app = FastAPI(
 
 origins = [
     "http://localhost:5173",
-    "https://cloud-clipboard-frontend.vercel.app",  # Apne exact Vercel frontend URL se replace karo
+    "https://cloud-clipboard-frontend.vercel.app"  # Apne exact Vercel frontend URL se replace karo
 ]
 
 
