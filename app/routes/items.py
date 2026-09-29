@@ -5,6 +5,7 @@ import urllib.parse
 from app.config import get_db
 from app.mega_service import mega_storage
 from app import schemas
+from app import models
 from app.models import Item, User
 from app.schemas import ItemCreate, ItemResponse, ItemOut
 from app.security import get_current_user
@@ -123,6 +124,6 @@ def get_public_items(
         )
     
     # 2. Fetch all clipboard items belonging to this user
-    items = db.query(models.Item).filter(models.Item.owner_id == user.id).all()
+    items = db.query(models.Item).filter(models.Item.user_id == user.id).all()
     
     return items
