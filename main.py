@@ -43,7 +43,7 @@ origins = [
     "http://localhost:3000",
     "https://cloud-clipboard-frontend.vercel.app",
     "https://cloud-clipboard.duckdns.org",
-    "https://cloud-clipboard.netlify.app/",
+    "https://cloud-clipboard.netlify.app",
 
       # Strictly no trailing slash '/'
 ]
